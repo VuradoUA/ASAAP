@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlastNatur - Dashboard Compacto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        /* Scrollbar mais discreta para pequenos ecrãs */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .glass-panel { background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 16px; border: 1px solid #f3f4f6; }
+        .in-validation { background-image: repeating-linear-gradient(45deg, #f9fafb 25%, transparent 25%, transparent 75%, #f9fafb 75%, #f9fafb), repeating-linear-gradient(45deg, #f9fafb 25%, #ffffff 25%, #ffffff 75%, #f9fafb 75%, #f9fafb); background-position: 0 0, 10px 10px; background-size: 20px 20px; border: 1px dashed #d1d5db; opacity: 0.8; }
+        .meter-track { background: #e5e7eb; height: 10px; border-radius: 999px; position: relative; overflow: hidden; }
+        .meter-fill { height: 100%; border-radius: 999px; transition: width 1s ease-in-out; }
+        .meter-target-line { position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(0,0,0,0.4); z-index: 10; }
+    </style>
+</head>
+<!-- h-screen para forçar o fit no ecrã horizontal, overflow-hidden para gerir o scroll internamente -->
+<body class="text-gray-800 h-screen overflow-hidden flex flex-col p-2 gap-2">
+
+    <!-- Header Super Compacto -->
+    <header class="flex justify-between items-center bg-white p-2 px-4 rounded-xl shadow-sm border border-gray-100 flex-shrink-0">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-sm"><i class="fa-solid fa-leaf"></i></div>
+            <div>
+                <h1 class="text-sm font-bold leading-none">PlastNatur Impact</h1>
+                <p class="text-[10px] text-gray-500 uppercase font-semibold">Dashboard Cliente</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="bg-gray-100 p-0.5 rounded flex text-xs font-semibold">
+                <button class="px-3 py-1 bg-white text-green-700 shadow-sm rounded transition-all">Evento</button>
+                <button class="px-3 py-1 text-gray-500 transition-all">Acumulado</button>
+            </div>
+            <select class="bg-transparent text-xs font-bold text-gray-700 outline-none"><option>PT</option></select>
+            <!-- Botão reduzido apenas ao ícone -->
+            <button class="bg-gray-900 text-white w-8 h-8 rounded-lg text-sm hover:bg-gray-800 flex items-center justify-center" title="Exportar">
+                <i class="fa-solid fa-download"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Layout Principal: 2 Colunas -->
+    <div class="flex flex-1 gap-2 overflow-hidden">
+        
+        <!-- COLUNA ESQUERDA: Resumo e Badges (Fixa) -->
+        <div class="w-1/3 max-w-xs flex flex-col gap-2 overflow-y-auto">
+            <div class="glass-panel bg-gradient-to-br from-green-50 to-white flex-1 flex flex-col items-center justify-center text-center">
+                <h2 class="text-lg font-black text-gray-900 mb-2">Impacto Global</h2>
+                <div class="relative w-24 h-24 flex items-center justify-center mb-2">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path class="text-green-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="text-green-600" stroke-width="3" stroke-dasharray="88, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="absolute text-2xl font-black text-green-700">88</div>
+                </div>
+                <p class="text-xs text-gray-700 leading-tight mb-4">
+                    Comunidade alcançou excelência evitando <strong>150kg</strong> de plástico. Ciclo fechado perfeito com 850 voluntários!
+                </p>
+                
+                <!-- Badges passados para aqui -->
+                <div class="flex flex-col gap-2 w-full mt-auto">
+                    <div class="px-2 py-1.5 bg-yellow-50 text-yellow-700 rounded text-[11px] font-bold flex items-center gap-2 border border-yellow-200">
+                        <i class="fa-solid fa-medal text-yellow-500"></i> Gold Circularity
+                    </div>
+                    <div class="px-2 py-1.5 bg-green-50 text-green-700 rounded text-[11px] font-bold flex items-center gap-2 border border-green-200">
+                        <i class="fa-solid fa-leaf text-green-500"></i> Low Contamination
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: Dados e Gráficos (Scrollável se necessário) -->
+        <div class="w-2/3 flex-1 overflow-y-auto pr-1">
+            <div class="grid grid-cols-2 gap-2 h-full">
+                
+                <!-- Ambiental & Gráfico -->
+                <div class="col-span-2 lg:col-span-1 flex flex-col gap-2">
+                    <div class="glass-panel">
+                        <h3 class="text-sm font-bold text-gray-900 mb-3"><i class="fa-solid fa-earth-europe text-blue-500"></i> Ambiental</h3>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <div class="bg-green-50 p-2 rounded border border-green-100">
+                                <span class="text-[10px] font-semibold text-green-800 uppercase">Plástico Evitado</span>
+                                <div class="text-lg font-black text-green-700">150 <span class="text-xs">kg</span></div>
+                            </div>
+                            <div class="bg-blue-50 p-2 rounded border border-blue-100">
+                                <span class="text-[10px] font-semibold text-blue-800 uppercase">CO2 Evitado</span>
+                                <div class="text-lg font-black text-blue-700">320 <span class="text-xs">kg</span></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Equivalências Simplificadas -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-100">
+                                <i class="fa-solid fa-car text-gray-400"></i>
+                                <div><div class="text-sm font-bold">1,250</div><div class="text-[9px] text-gray-500">km de carro</div></div>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-100">
+                                <i class="fa-solid fa-tree text-green-500"></i>
+                                <div><div class="text-sm font-bold">14</div><div class="text-[9px] text-gray-500">Árvores</div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico mais curto -->
+                    <div class="glass-panel flex-1 min-h-[140px] flex flex-col">
+                        <h3 class="text-sm font-bold text-gray-900 mb-1"><i class="fa-solid fa-chart-line text-purple-500"></i> Comportamento</h3>
+                        <div class="flex-1 w-full relative">
+                            <canvas id="returnCurveChart" class="absolute inset-0"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social & Compostagem -->
+                <div class="col-span-2 lg:col-span-1 flex flex-col gap-2">
+                    <div class="glass-panel">
+                        <h3 class="text-sm font-bold text-gray-900 mb-3"><i class="fa-solid fa-users text-pink-500"></i> Social & Operacional</h3>
+                        <div class="space-y-3">
+                            <!-- Landfill -->
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="text-xs font-bold text-gray-700">Landfill Diversion</span>
+                                    <span class="text-sm font-black text-green-600">92%</span>
+                                </div>
+                                <div class="meter-track"><div class="meter-fill bg-green-500" style="width: 92%"></div></div>
+                            </div>
+                            <!-- Contaminação -->
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="text-xs font-bold text-gray-700">Contaminação</span>
+                                    <span class="text-sm font-black text-yellow-500">12%</span>
+                                </div>
+                                <div class="meter-track flex justify-end bg-gray-100"><div class="meter-fill bg-yellow-400" style="width: 12%"></div></div>
+                            </div>
+                            <!-- Circularity -->
+                            <div class="bg-indigo-50 rounded p-2 border border-indigo-100">
+                                <span class="text-[10px] font-semibold text-indigo-800 uppercase block">Circularity Cycles</span>
+                                <div class="text-lg font-black text-indigo-700">4.5 <span class="text-xs font-normal">ciclos</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compostagem -->
+                    <div class="glass-panel flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-2"><i class="fa-solid fa-seedling text-amber-500"></i> Compostagem</h3>
+                        <div class="bg-amber-50 p-2 rounded border border-amber-100 mb-2">
+                            <span class="text-[10px] font-semibold text-amber-800 uppercase">Composto Gerado</span>
+                            <div class="text-lg font-black text-amber-700">45 <span class="text-xs">kg</span></div>
+                        </div>
+                        <div class="p-2 rounded in-validation border-amber-200">
+                            <span class="text-[10px] font-semibold text-gray-500 uppercase">BioValue Score</span>
+                            <div class="text-sm font-bold text-gray-400 mt-1">Lançamento em 2027</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Script do Gráfico mantido igual, mas ajustado à nova altura -->
+    <script>
+        const ctx = document.getElementById('returnCurveChart').getContext('2d');
+        let gradient = ctx.createLinearGradient(0, 0, 0, 150);
+        gradient.addColorStop(0, 'rgba(168, 85, 247, 0.2)');
+        gradient.addColorStop(1, 'rgba(168, 85, 247, 0)');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00', 'Fim'],
+                datasets: [{
+                    label: 'Copos Devolvidos',
+                    data: [10, 45, 120, 280, 450, 700, 850],
+                    borderColor: '#a855f7',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    pointRadius: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { maxTicksLimit: 5, font: { size: 10 } } },
+                    x: { ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
